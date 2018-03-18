@@ -3,6 +3,7 @@ package types
 import (
 	"io"
 	"time"
+	"net/http"
 )
 
 type Ctx struct {
@@ -11,8 +12,22 @@ type Ctx struct {
 	Val CtxValue
 }
 
+func (c *Ctx) NewChild () (ctx Ctx) {
+	ctx.Parent = c
+
+	return
+}
+
 type CtxValue struct {
-	CtxVar
+	String     string
+	Int        int
+	Bytes      []byte
+	ReadCloser io.ReadCloser
+	Response 	*http.Response
+	Request 	*http.Request
+	Time       time.Time
+	Duration   time.Duration
+	Interface  interface{}
 	Map   CtxMap
 	Slice CtxSlice
 	NamedSlice CtxNamedSlice
@@ -33,20 +48,24 @@ type CtxMap struct {
 	String     map[string]string
 	Int        map[string]int
 	Bytes      map[string][]byte
-	ReadCloser map[string]io.ReadCloser
-	Time       map[string]time.Time
 	Duration   map[string]time.Duration
 	Interface  map[string]interface{}
+	Time       map[string]time.Time
+	ReadCloser map[string]io.ReadCloser
+	Response 	*http.Response
+	Request 	*http.Request
 }
 
 type CtxSlice struct {
-	Strings     []string
-	Ints        []int
-	Bytess      [][]byte
-	ReadClosers []io.ReadCloser
-	Times       []time.Time
-	Durations   []time.Duration
-	Interfaces  []interface{}
+	String    []string
+	Int       []int
+	Bytes     [][]byte
+	ReadCloser[]io.ReadCloser
+	Time      []time.Time
+	Duration  []time.Duration
+	Interface []interface{}
+	Request []interface{}
+	Response []interface{}
 }
 
 type CtxNamedSlice struct {
@@ -57,16 +76,6 @@ type CtxNamedSlice struct {
 	TimeDatas       map[string][][]time.Time
 	DurationDatas   map[string][][]time.Duration
 	InterfaceDatas  map[string][]interface{}
-}
-
-type CtxVar struct {
-	String     string
-	Int        int
-	Bytes      []byte
-	ReadCloser io.ReadCloser
-	Time       time.Time
-	Duration   time.Duration
-	Interface  interface{}
 }
 
 type Url struct {

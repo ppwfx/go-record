@@ -5,41 +5,34 @@ import (
 	"time"
 	"github.com/21stio/go-record/pkg/maps"
 	"github.com/21stio/go-record/pkg/types"
-	"fmt"
-	"unsafe"
 	"github.com/21stio/go-record/pkg/document_p"
 	"github.com/21stio/go-record/pkg/http_p"
 	"github.com/21stio/go-record/pkg/utils"
-	"github.com/21stio/go-record/pkg/bytes_p"
-	"github.com/21stio/go-record/pkg/inspect_p"
 	"github.com/21stio/go-record/pkg/allocate_p"
-	"github.com/21stio/go-record/pkg/strings_p"
 	"github.com/21stio/go-record/pkg/store"
-	"github.com/21stio/go-record/pkg/string_map_p"
+	"github.com/21stio/go-record/pkg/e"
+	"github.com/21stio/go-record/pkg/pipe"
+	"encoding/hex"
+	"os"
 )
 
 var urls = maps.NewConUrlMap()
 
 func main() {
-
-	a := types.Ctx{}
-	b := types.CtxValue{}
-	fmt.Printf("c: %T, %d\n", a, unsafe.Sizeof(a))
-	fmt.Printf("c: %T, %d\n", b, unsafe.Sizeof(b))
-
 	err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-var nJobs = 100
+func render() (err error) {
+	return
+}
 
 func run() (err error) {
-	errCh := make(chan error, 100)
 
-	//timer(time.Second)
-	go printErrors(errCh)
+	render.Run()
+	os.Exit(0)
 
 	utils.Debug = true
 
@@ -47,90 +40,106 @@ func run() (err error) {
 		Url: "http://www.supremenewyork.com/shop/all",
 	})
 
-	p := Trigger(1 * time.Second)
-	p = allocate_p.All(p)
-	p = http_p.Get(p, errCh)
+	pCh := Trigger(100 * time.Second)
+	pCh = allocate_p.All(pCh)
 
-	p = bytes_p.
-		FromReadCloser(p, errCh).
-		Store(store.Ctx("html"), errCh).
-		HashSha512().
-		IsNew(store.Memory()).
-		Ch
+	pipe.New(pCh).
+	//Print().
+		Scoped("store_html", func(p pipe.Pipe) (np pipe.Pipe) {
+		np = http_p.New(p).
+			Get(e.Requeue(500*time.Millisecond, true)).
+			StoreBody(store.Val(), e.Fatal()).
+			ReadCloser().
+			ToBytes(e.Fatal()).Pipe
 
-	p = strings_p.
-		Pipe(p).
-		Render(`/tmp/{{ .Id | replace "/" "_" }}_{{ index .Value.StringData "version" }}.html`).
-		Store(store.Ctx("path"), errCh).
-		Ch
+		np = np.Print()
 
-	p = bytes_p.
-		Get("html", p).
-		Store(store.File(`{{ index .Map.String "path" }}`, 0644), errCh).
-		ToFile(`{{ index .Map.String "path" }}`, errCh).
-		ToReadCloser(errCh)
-
-	p = utils.Do(p, func(ctx types.Ctx) types.Ctx {
-		m := ctx.Val.Map.String
-		m["time"] = time.Now().String()
-		m["url"] = ctx.Id
-		m["path"] = ctx.Map.String["path"]
-
-		ctx.Val.Map.String = m
-
-		return ctx
-	})
-
-	p = string_map_p.
-		Pipe(p).
-		Store(store.Csv("/tmp/yo", []string{"time", "url", "path",}, 0644), errCh).
-		Ch
-
-	//p = inspect_p.Print(p)
-
-	p = document_p.FromReadCloser(p, errCh)
-
-	p = document_p.
-		ParseHrefs(p, errCh).
-		StartsWith([]string{
-		"/shop/jackets",
-		"/shop/shirts",
-		"/shop/tops_sweaters",
-		"/shop/sweatshirts",
-		"/shop/pants",
-		"/shop/shorts",
-		"/shop/hats",
-		"/shop/bags",
-		"/shop/accessories",
-		"/shop/shoes",
-		"/shop/skate",
+		return
 	}).
-		ContainsNot([]string{"?"}).
-		Prefix("http://www.supremenewyork.com").
-		IsNew(store.Memory()).
-		Ch
+		Scoped("store_new_html_hash", func(p pipe.Pipe) (np pipe.Pipe) {
+		np = p.Bytes().
+			HashSha512().
+			HexToString(hex.EncodeToString).
+			IsNew(store.Memory(), e.Fatal()).
+			Store(store.Ctx("hash"), e.Fatal()).Pipe
 
-	p = add(p)
+		return
+	}).
+		Scoped("generate_html_path", func(p pipe.Pipe) (np pipe.Pipe) {
+		np = p.String().
+			Render(`/tmp/pages/{{ .Id | replace "/" "_" }}_{{ index .Map.String "hash" }}.html`).
+			Store(store.Ctx("path"), e.Fatal()).Pipe
 
-	p = inspect_p.Count("add", 10, p)
+		return
+	}).
+		Scoped("store_html", func(p pipe.Pipe) (np pipe.Pipe) {
+		np = p.Bytes().
+			Load(store.Ctx("html"), e.Fatal()).
+			Store(store.File(store.Ctx("path"), 0644), e.Requeue(500*time.Millisecond, true)).Pipe
 
-	//inspect_p.Print(p)
+		return
+	}).
+		Scoped("store_time_url_path_in_csv", func(p pipe.Pipe) (np pipe.Pipe) {
+		np = p.Do(func(ctx types.Ctx) (types.Ctx, error) {
+			m := ctx.Val.Map.String
+			m["time"] = time.Now().String()
+			m["url"] = ctx.Id
+			m["path"] = ctx.Map.String["path"]
 
-	//utils.Exit(p)
+			ctx.Val.Map.String = m
 
-	utils.Drain(p)
+			return ctx, nil
+		}, e.Fatal()).
+			StringMap().
+			Store(store.Csv("/tmp/pages.csv", []string{"time", "url", "path",}), e.Requeue(500*time.Millisecond, true)).Pipe
+
+		return
+	}).
+		Scoped("parse_hrefs", func(p pipe.Pipe) (np pipe.Pipe) {
+		p = p.Bytes().
+			Load(store.Ctx("html"), e.Fatal()).
+			ToReadCloser().Pipe
+
+		np = document_p.FromReadCloser(p, store.Val(), e.Fatal()).
+			ParseHrefs(e.Fatal()).Pipe
+
+		np = np.Print()
+
+		return
+	}).
+		Scoped("filter_hrefs", func(p pipe.Pipe) (np pipe.Pipe) {
+		np = p.String().
+			StartsWith([]string{
+			"/shop/jackets",
+			"/shop/shirts",
+			"/shop/tops_sweaters",
+			"/shop/sweatshirts",
+			"/shop/pants",
+			"/shop/shorts",
+			"/shop/hats",
+			"/shop/bags",
+			"/shop/accessories",
+			"/shop/shoes",
+			"/shop/skate",
+		}).
+			ContainsNot([]string{"?"}).
+			Prefix("http://www.supremenewyork.com").
+			IsNew(store.Memory(), e.Fatal()).Pipe
+
+		return
+	}).Do(func(ctx types.Ctx) (c types.Ctx, err error) {
+		urls.Store(ctx.Val.String, types.Url{
+			Url:   ctx.Val.String,
+			Level: ctx.Parent.Map.Int["level"] + 1})
+
+		return
+	}, e.Fatal()).
+		Count("add", 10).
+		Drain()
 
 	time.Sleep(120 * time.Second)
 
-	//spew.Dump(urls)
-
 	return
-}
-
-func printErrors(ch chan error) {
-	for {
-		log.Println(<-ch)
-	}
 }
 
 func Trigger(frequency time.Duration) (out chan types.Ctx) {
@@ -151,22 +160,6 @@ func Trigger(frequency time.Duration) (out chan types.Ctx) {
 		}
 
 		time.Sleep(frequency)
-	})
-
-	return out
-}
-
-func add(in chan types.Ctx) (out chan types.Ctx) {
-	out = make(chan types.Ctx, 1000)
-
-	utils.Para("add", nJobs, func() {
-		ctx := <-in
-
-		urls.Store(ctx.Val.String, types.Url{
-			Url:   ctx.Val.String,
-			Level: ctx.Parent.Map.Int["level"] + 1})
-
-		out <- ctx
 	})
 
 	return out

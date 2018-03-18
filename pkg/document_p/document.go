@@ -4,35 +4,67 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/21stio/go-record/pkg/types"
 	"github.com/21stio/go-record/pkg/utils"
-	"github.com/21stio/go-record/pkg/strings_p"
+
+	"github.com/21stio/go-record/pkg/e"
+	"errors"
+	"github.com/21stio/go-record/pkg/pipe"
+	"github.com/21stio/go-record/pkg/store"
+	"log"
 )
 
-func FromReadCloser(ctxCh chan types.Ctx, errCh chan error) (out chan types.Ctx) {
-	return utils.Para2("document.Get", ctxCh, 10, true, func(ctx types.Ctx, out chan types.Ctx) (types.Ctx, error) {
-		doc, err := goquery.NewDocumentFromReader(ctx.Val.ReadCloser)
-		if err != nil {
-			errCh <- err
-		}
-		ctx.Val.ReadCloser.Close()
+var nJobs = 100
 
-		ctx.Val.ReadCloser = nil
-		ctx.Val.Interface = doc
-		out <- ctx
-
-		return ctx, err
-	})
+type DocumentPipe struct {
+	pipe.Pipe
 }
 
-func ParseHrefs(ctxCh chan types.Ctx, errCh chan error) (nF strings_p.StringFluid) {
-	nF.Ch = make(chan types.Ctx, 1000)
+func FromReadCloser(p pipe.Pipe, store store.GetReadCloser, errH e.HandleError) (np DocumentPipe) {
+	np.Ch = make(chan types.Ctx, 1000)
+	np.Scope = p.Scope
 
-	utils.Para("string.StartsWith", 10, func() {
-		ctx := <-ctxCh
+	utils.Para(p.Scope + "__document.FromReadCloser", nJobs, func() {
+		ctx := <-p.Ch
+
+		rc := store.GetReadCloser(ctx)
+		doc, err := goquery.NewDocumentFromReader(rc)
+		if err != nil {
+			errH.HandleError(ctx, p.Ch, err)
+			return
+		}
+		defer rc.Close()
+
+		ctx.Val.Interface = doc
+		np.Ch <- ctx
+	})
+
+	return np
+}
+
+func (p DocumentPipe) ParseHrefs(errH e.HandleError) (np pipe.StringPipe) {
+	np.Ch = make(chan types.Ctx, 1000)
+	np.Scope = p.Scope
+
+	utils.Para(p.Scope + "__document.ParseHrefs", nJobs, func() {
+		ctx := <-p.Ch
+
+		println("yo1")
 
 		doc, ok := ctx.Val.Interface.(*goquery.Document)
 		if !ok {
+			errH.HandleError(ctx, p.Ch, errors.New("expected document"))
 			return
 		}
+
+		println("yo2")
+
+		h, err := doc.Html()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		println(h)
+
+		println(string(ctx.Map.Bytes["html"]))
 
 		doc.Find("a").Each(func(i int, s *goquery.Selection) {
 			href, ok := s.Attr("href")
@@ -45,7 +77,7 @@ func ParseHrefs(ctxCh chan types.Ctx, errCh chan error) (nF strings_p.StringFlui
 			c.Id = href
 			c.Val.String = href
 
-			nF.Ch <- c
+			np.Ch <- c
 		})
 	})
 

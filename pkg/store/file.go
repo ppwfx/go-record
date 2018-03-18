@@ -1,13 +1,19 @@
 package store
 
+import (
+	"os"
+	"io/ioutil"
+	"github.com/21stio/go-record/pkg/types"
+)
+
 type FileStore struct {
-	tmpl *template.Template
+	path GetString
 	mode os.FileMode
 }
 
-func File(pathTmpl string, mode os.FileMode) (s FileStore) {
-	s.tmpl = template.Must(template.New("").Funcs(sprig.FuncMap()).Parse(pathTmpl))
+func File(path GetString, mode os.FileMode) (s FileStore) {
 	s.mode = mode
+	s.path = path
 
 	return
 }
@@ -15,10 +21,7 @@ func File(pathTmpl string, mode os.FileMode) (s FileStore) {
 func (s FileStore) StoreBytes(ctx types.Ctx, b []byte) (c types.Ctx, err error) {
 	c = ctx
 
-	var tplOut bytes.Buffer
-	s.tmpl.Execute(&tplOut, ctx)
-
-	err = ioutil.WriteFile(tplOut.String(), ctx.Val.Bytes, 0644)
+	err = ioutil.WriteFile(s.path.GetString(ctx), ctx.Val.Bytes, 0644)
 	if err != nil {
 		return
 	}

@@ -1,14 +1,22 @@
-hash: 98cbe7577591006bf66155872b050fe9acf9f66aa4671047fb872664fd6fc083
-updated: 2018-03-13T22:37:45.360932892+01:00
+hash: 4af03dc40a57f9152b6fa48b82d767874362b8629cf318f0be5aeeaf62dfd1e8
+updated: 2018-03-17T18:23:06.020149999+01:00
 imports:
 - name: github.com/andybalholm/cascadia
   version: 901648c87902174f774fac311d7f176f8647bdaa
 - name: github.com/aokoli/goutils
   version: 3391d3790d23d03408670993e957e8f408993c34
+- name: github.com/bclicn/color
+  version: 4c02eff8a28c1add99b3b5b238c165056c3bea8e
+- name: github.com/dave/jennifer
+  version: 5ba2c0232d2f848cf1e390db03b100f0838f6d55
+  subpackages:
+  - jen
 - name: github.com/davecgh/go-spew
   version: 346938d642f2ec3594ed81d874461961cd0faa76
   subpackages:
   - spew
+- name: github.com/fatih/structs
+  version: a720dfa8df582c51dee1b36feabb906bde1588bd
 - name: github.com/huandu/xstrings
   version: 2bf18b218c51864a87384c06996e40ff9dcff8e1
 - name: github.com/imdario/mergo
@@ -22,7 +30,7 @@ imports:
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: golang.org/x/crypto
-  version: c4a91bd4f524f10d064139674cf55852e055ad01
+  version: 374053ea96cb300f8671b8d3b07edeeb06e203b4
   subpackages:
   - pbkdf2
   - scrypt

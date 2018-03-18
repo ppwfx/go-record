@@ -2,9 +2,7 @@ package utils
 
 import (
 	"github.com/21stio/go-record/pkg/types"
-	"os"
 )
-
 
 var Debug = false
 
@@ -46,30 +44,4 @@ func Para2(step string, ctxIn chan types.Ctx, n int, passCtx bool, f func(types.
 	}
 
 	return ctxOut
-}
-
-func Drain(ctxCh chan types.Ctx) {
-	Para("utils.Drain", 1, func() {
-		<-ctxCh
-	})
-}
-
-func Do(ctxCh chan types.Ctx, f func (types.Ctx) (types.Ctx)) (ctxOut chan types.Ctx) {
-	ctxOut = make(chan types.Ctx, 1000)
-
-	Para("utils.Do", 1, func() {
-		ctx := <-ctxCh
-
-		ctx = f(ctx)
-
-		ctxOut <- ctx
-	})
-
-	return
-}
-
-func Exit(ctxCh chan types.Ctx) {
-	<-ctxCh
-
-	os.Exit(0)
 }
