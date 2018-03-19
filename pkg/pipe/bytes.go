@@ -9,6 +9,7 @@ import (
 	"github.com/21stio/go-record/pkg/store"
 	"github.com/21stio/go-record/pkg/e"
 	"bytes"
+	"github.com/21stio/go-record/pkg/s"
 )
 
 type BytesPipe struct {
@@ -22,14 +23,28 @@ func (p BytesPipe) ToReadCloser() (np ReadCloserPipe) {
 	utils.Para(p.Scope+"__bytes.ToReadCloser", nJobs, func() {
 		ctx := <-p.Ch
 		ctx.Val.ReadCloser = ioutil.NopCloser(bytes.NewReader(ctx.Val.Bytes))
-		ctx.Val.Bytes = []byte{}
+		ctx.Val.Bytes = nil
 		np.Ch <- ctx
 	})
 
 	return np
 }
 
-func (p BytesPipe) Load(store store.LoadBytes, errH e.HandleError) (np BytesPipe) {
+func (p BytesPipe) ToString() (np StringPipe) {
+	np.Ch = make(chan types.Ctx, 1000)
+	np.Scope = p.Scope
+
+	utils.Para(p.Scope+"__bytes.ToString", nJobs, func() {
+		ctx := <-p.Ch
+		ctx.Val.String = string(ctx.Val.Bytes)
+		ctx.Val.Bytes = nil
+		np.Ch <- ctx
+	})
+
+	return np
+}
+
+func (p BytesPipe) Load(store s.LoadBytes, errH e.HandleError) (np BytesPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 
@@ -81,7 +96,7 @@ func (p BytesPipe) HexToString(func([]byte) string) (np StringPipe) {
 	return
 }
 
-func (p BytesPipe) Store(store store.StoreBytes, errH e.HandleError) (np BytesPipe) {
+func (p BytesPipe) Store(store s.StoreBytes, errH e.HandleError) (np BytesPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 
@@ -100,7 +115,7 @@ func (p BytesPipe) Store(store store.StoreBytes, errH e.HandleError) (np BytesPi
 	return
 }
 
-func (p BytesPipe) IsNew(store store.IsNewBytes, errH e.HandleError) (np BytesPipe) {
+func (p BytesPipe) IsNew(store s.IsNewBytes, errH e.HandleError) (np BytesPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

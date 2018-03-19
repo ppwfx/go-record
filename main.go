@@ -4,34 +4,107 @@ import (
 	"log"
 	"time"
 	"github.com/21stio/go-record/pkg/maps"
-	"github.com/21stio/go-record/pkg/types"
 	"github.com/21stio/go-record/pkg/document_p"
 	"github.com/21stio/go-record/pkg/http_p"
 	"github.com/21stio/go-record/pkg/utils"
-	"github.com/21stio/go-record/pkg/allocate_p"
-	"github.com/21stio/go-record/pkg/store"
 	"github.com/21stio/go-record/pkg/e"
 	"github.com/21stio/go-record/pkg/pipe"
 	"encoding/hex"
 	"os"
+	"github.com/21stio/go-record/pkg/transform"
+	"github.com/21stio/go-record/pkg/a"
+	"fmt"
+	"reflect"
+	"github.com/21stio/go-record/pkg/s"
 )
 
 var urls = maps.NewConUrlMap()
 
 func main() {
-	err := run()
+	err := render()
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
+type Ent struct {
+	Name     string
+	Type     string
+	FileName string
+}
+
+
+
 func render() (err error) {
+	rootDir := "pkg/templates"
+	destDir := "pkg/rendered"
+
+	fmt.Println("%+v", reflect.ValueOf(render))
+
+	dir := s.Ctx("dir")
+	fileName := s.Ctx("fileName")
+	filePath := s.Ctx("filePath")
+	templateTxt := s.Ctx("templateTxt")
+
+	ls := s.String("ls")
+
+	utils.Debug = true
+
+	ents := []Ent{
+		{
+			Name:     "ByteSlice",
+			Type:     "[]byte",
+			FileName: "byte_slice",
+		},
+		{
+			Name:     "String",
+			Type:     "string",
+			FileName: "string",
+		},
+	}
+
+	p := pipe.Drop(rootDir).
+		Allocate().
+		String().
+		Store(dir, e.Fatal()).
+		Os().
+		Exec(dir, ls, e.Fatal()).
+		ToSlice(transform.Split("\n")).
+		Each().
+		Filter(a.NotEmpty()).
+		Store(fileName, e.Fatal()).
+		Render(`{{ index .Map.String "dir" }}/{{ index .Map.String "fileName" }}`).Store(filePath, e.Fatal()).
+		Bytes().
+		Load(s.File(filePath, 0644), e.Fatal()).ToString().Store(templateTxt, e.Fatal()).Pipe
+
+	destFilePath := s.Ctx("destFilePath")
+	destFileTxt := s.Ctx("destFileTxt")
+
+	for _, ent := range ents {
+		p = p.String().
+			Load(templateTxt, e.Fatal()).
+			ToString(transform.Replace("type __TYPE__ interface{}", "", -1)).
+			ToString(transform.Replace("__NAME__", ent.Name, -1)).
+			ToString(transform.Replace("__TYPE__", ent.Type, -1)).
+			Store(destFileTxt, e.Fatal()).Pipe
+
+		p = p.String().
+			Render(destDir + `/{{ index .Map.String "fileName" }}`).
+			ToString(transform.Replace("__FILENAME__", ent.FileName, -1)).
+			Store(destFilePath, e.Fatal()).
+			Load(destFileTxt, e.Fatal()).
+			ToBytes().
+			Store(s.File(destFilePath, 0644), e.Fatal()).Pipe
+	}
+
+	p.Drain()
+
+	time.Sleep(100 * time.Second)
+
 	return
 }
 
 func run() (err error) {
-
-	render.Run()
 	os.Exit(0)
 
 	utils.Debug = true
@@ -40,15 +113,14 @@ func run() (err error) {
 		Url: "http://www.supremenewyork.com/shop/all",
 	})
 
-	pCh := Trigger(100 * time.Second)
-	pCh = allocate_p.All(pCh)
+	//pCh := Trigger(100 * time.Second)
 
-	pipe.New(pCh).
+	pipe.New().
 	//Print().
 		Scoped("store_html", func(p pipe.Pipe) (np pipe.Pipe) {
 		np = http_p.New(p).
 			Get(e.Requeue(500*time.Millisecond, true)).
-			StoreBody(store.Val(), e.Fatal()).
+			StoreBody(s.Val(), e.Fatal()).
 			ReadCloser().
 			ToBytes(e.Fatal()).Pipe
 
@@ -60,22 +132,22 @@ func run() (err error) {
 		np = p.Bytes().
 			HashSha512().
 			HexToString(hex.EncodeToString).
-			IsNew(store.Memory(), e.Fatal()).
-			Store(store.Ctx("hash"), e.Fatal()).Pipe
+			IsNew(s.Memory(), e.Fatal()).
+			Store(s.Ctx("hash"), e.Fatal()).Pipe
 
 		return
 	}).
 		Scoped("generate_html_path", func(p pipe.Pipe) (np pipe.Pipe) {
 		np = p.String().
 			Render(`/tmp/pages/{{ .Id | replace "/" "_" }}_{{ index .Map.String "hash" }}.html`).
-			Store(store.Ctx("path"), e.Fatal()).Pipe
+			Store(s.Ctx("path"), e.Fatal()).Pipe
 
 		return
 	}).
 		Scoped("store_html", func(p pipe.Pipe) (np pipe.Pipe) {
 		np = p.Bytes().
-			Load(store.Ctx("html"), e.Fatal()).
-			Store(store.File(store.Ctx("path"), 0644), e.Requeue(500*time.Millisecond, true)).Pipe
+			Load(s.Ctx("html"), e.Fatal()).
+			Store(s.File(s.Ctx("path"), 0644), e.Requeue(500*time.Millisecond, true)).Pipe
 
 		return
 	}).
@@ -91,16 +163,16 @@ func run() (err error) {
 			return ctx, nil
 		}, e.Fatal()).
 			StringMap().
-			Store(store.Csv("/tmp/pages.csv", []string{"time", "url", "path",}), e.Requeue(500*time.Millisecond, true)).Pipe
+			Store(s.Csv("/tmp/pages.csv", []string{"time", "url", "path",}), e.Requeue(500*time.Millisecond, true)).Pipe
 
 		return
 	}).
 		Scoped("parse_hrefs", func(p pipe.Pipe) (np pipe.Pipe) {
 		p = p.Bytes().
-			Load(store.Ctx("html"), e.Fatal()).
+			Load(s.Ctx("html"), e.Fatal()).
 			ToReadCloser().Pipe
 
-		np = document_p.FromReadCloser(p, store.Val(), e.Fatal()).
+		np = document_p.FromReadCloser(p, s.Val(), e.Fatal()).
 			ParseHrefs(e.Fatal()).Pipe
 
 		np = np.Print()
@@ -124,7 +196,7 @@ func run() (err error) {
 		}).
 			ContainsNot([]string{"?"}).
 			Prefix("http://www.supremenewyork.com").
-			IsNew(store.Memory(), e.Fatal()).Pipe
+			IsNew(s.Memory(), e.Fatal()).Pipe
 
 		return
 	}).Do(func(ctx types.Ctx) (c types.Ctx, err error) {

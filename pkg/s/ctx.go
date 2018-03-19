@@ -1,4 +1,4 @@
-package store
+package s
 
 import (
 	"github.com/21stio/go-record/pkg/types"

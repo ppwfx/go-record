@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"github.com/davecgh/go-spew/spew"
 	"strings"
+	"io"
+	"time"
 )
 
 type Pipe struct {
@@ -16,8 +18,14 @@ type Pipe struct {
 	Scope string
 }
 
-func New(ctxCh chan types.Ctx) (p Pipe) {
-	p.Ch = ctxCh
+func New() (np Pipe) {
+	np.Ch = make(chan types.Ctx, 1)
+
+	go func() {
+		ctx := types.Ctx{}
+
+		np.Ch <- ctx
+	}()
 
 	return
 }
@@ -41,6 +49,23 @@ func (p Pipe) Count(name string, steps int) (np Pipe) {
 	return
 }
 
+func Drop(any interface{}) (np Pipe) {
+	np.Ch = make(chan types.Ctx, 1)
+
+	go func() {
+		ctx := types.Ctx{}
+		switch sth := any.(type)  {
+		case string:
+			ctx.Val.String = sth
+		case []string:
+			ctx.Val.Slice.String = sth
+		}
+		np.Ch <- ctx
+	}()
+
+	return
+}
+
 func (p Pipe) Print() (np Pipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
@@ -48,9 +73,9 @@ func (p Pipe) Print() (np Pipe) {
 	utils.Para(p.Scope+"__pipe.Print", nJobs, func() {
 		ctx := <-p.Ch
 
-		printCtx(ctx)
+		//printCtx(ctx)
 
-		//spew.Dump(ctx)
+		spew.Dump(ctx)
 
 		np.Ch <- ctx
 	})
@@ -295,6 +320,41 @@ func (p Pipe) Response() (np ResponsePipe) {
 func (p Pipe) Os() (np OsPipe) {
 	np.Ch = p.Ch
 	np.Scope = p.Scope
+
+	return
+}
+
+func (p Pipe) StringSlice() (np StringSlicePipe) {
+	np.Ch = p.Ch
+	np.Scope = p.Scope
+
+	return
+}
+
+func (p Pipe) Allocate() (np Pipe) {
+	np.Ch = make(chan types.Ctx, 1000)
+
+	utils.Para("allocate.All", nJobs, func() {
+		ctx := <-p.Ch
+
+		ctx.Map.String     = map[string]string{}
+		ctx.Map.Int        = map[string]int{}
+		ctx.Map.Bytes      = map[string][]byte{}
+		ctx.Map.ReadCloser = map[string]io.ReadCloser{}
+		ctx.Map.Time       = map[string]time.Time{}
+		ctx.Map.Duration   = map[string]time.Duration{}
+		ctx.Map.Interface  = map[string]interface{}{}
+
+		ctx.Val.Map.String     = map[string]string{}
+		ctx.Val.Map.Int        = map[string]int{}
+		ctx.Val.Map.Bytes      = map[string][]byte{}
+		ctx.Val.Map.ReadCloser = map[string]io.ReadCloser{}
+		ctx.Val.Map.Time       = map[string]time.Time{}
+		ctx.Val.Map.Duration   = map[string]time.Duration{}
+		ctx.Val.Map.Interface  = map[string]interface{}{}
+
+		np.Ch <- ctx
+	})
 
 	return
 }

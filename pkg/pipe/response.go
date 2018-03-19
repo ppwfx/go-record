@@ -11,7 +11,7 @@ type ResponsePipe struct {
 	Pipe
 }
 
-func (p ResponsePipe) StoreBody(s store.StoreReadCloser, errH e.HandleError) (nP ResponsePipe) {
+func (p ResponsePipe) StoreBody(s s.StoreReadCloser, errH e.HandleError) (nP ResponsePipe) {
 	nP.Ch = make(chan types.Ctx, 1000)
 	nP.Scope = p.Scope
 

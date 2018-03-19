@@ -1,4 +1,4 @@
-package store
+package s
 
 import (
 	"github.com/21stio/go-record/pkg/types"
@@ -38,4 +38,8 @@ func (s ValStore) StoreReadCloser(ctx types.Ctx, rc io.ReadCloser) (c types.Ctx,
 
 func (s ValStore) GetReadCloser (ctx types.Ctx) (rc io.ReadCloser) {
 	return ctx.Val.ReadCloser
+}
+
+func (s ValStore) GetString (ctx types.Ctx) (string) {
+	return ctx.Val.String
 }

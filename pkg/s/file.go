@@ -1,4 +1,4 @@
-package store
+package s
 
 import (
 	"os"
@@ -25,6 +25,19 @@ func (s FileStore) StoreBytes(ctx types.Ctx, b []byte) (c types.Ctx, err error) 
 	if err != nil {
 		return
 	}
+
+	return
+}
+
+func (s FileStore) LoadBytes(ctx types.Ctx) (c types.Ctx, err error) {
+	c = ctx
+
+	b, err := ioutil.ReadFile(s.path.GetString(ctx))
+	if err != nil {
+		return
+	}
+
+	c.Val.Bytes = b
 
 	return
 }

@@ -18,7 +18,7 @@ type DocumentPipe struct {
 	pipe.Pipe
 }
 
-func FromReadCloser(p pipe.Pipe, store store.GetReadCloser, errH e.HandleError) (np DocumentPipe) {
+func FromReadCloser(p pipe.Pipe, store s.GetReadCloser, errH e.HandleError) (np DocumentPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

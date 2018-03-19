@@ -1,4 +1,4 @@
-package store
+package s
 
 import (
 	"encoding/csv"

@@ -1,4 +1,4 @@
-package store
+package s
 
 import (
 	"github.com/21stio/go-record/pkg/types"
@@ -60,4 +60,9 @@ type IsNewString interface {
 
 type IsNewBytes interface {
 	IsNewBytes(types.Ctx, []byte) (types.Ctx, bool, error)
+}
+
+
+func Parent() (i interface{}){
+	return
 }
