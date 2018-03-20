@@ -146,7 +146,7 @@ func abc() {
 			"url": "http://www.supremenewyork.com/shop/all",
 		}).
 		Inject(loop).
-		String("url", http.Get, 100).
+		String("url", http.Get).Go(100).
 		Bytes("html").
 		Do(md5.Sum).
 		If(a.IsNew(s.Memory())).
