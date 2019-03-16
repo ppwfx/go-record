@@ -1,65 +1,65 @@
 package s
 
 import (
-	"github.com/21stio/go-record/pkg/types"
+	"github.com/21stio/go-record/pkg/t"
 	"github.com/21stio/go-record/pkg/e"
 	"io"
 )
 
 type StoreBytes interface {
-	StoreBytes(types.Ctx, []byte) (types.Ctx, error)
+	StoreBytes(t.Ctx, []byte) (t.Ctx, error)
 }
 
 type StoreString interface {
-	StoreString(types.Ctx, string) (types.Ctx, error)
+	StoreString(t.Ctx, string) (t.Ctx, error)
 }
 
 type StoreStringMap interface {
-	StoreStringMap(types.Ctx, map[string]string) (types.Ctx, error)
+	StoreStringMap(t.Ctx, map[string]string) (t.Ctx, error)
 }
 
 type StoreReadCloser interface {
-	StoreReadCloser(types.Ctx, io.ReadCloser) (types.Ctx, error)
+	StoreReadCloser(t.Ctx, io.ReadCloser) (t.Ctx, error)
 }
 
 type GetBytes interface {
-	GetBytes(types.Ctx) ([]byte)
+	GetBytes(t.Ctx) ([]byte)
 }
 
 type GetString interface {
-	GetString(types.Ctx) (string)
+	GetString(t.Ctx) (string)
 }
 
 type GetStringMap interface {
-	GetStringMap(types.Ctx) (map[string]string)
+	GetStringMap(t.Ctx) (map[string]string)
 }
 
 type GetReadCloser interface {
-	GetReadCloser(types.Ctx) (io.ReadCloser)
+	GetReadCloser(t.Ctx) (io.ReadCloser)
 }
 
 type LoadBytes interface {
-	LoadBytes(types.Ctx) (types.Ctx, error)
+	LoadBytes(t.Ctx) (t.Ctx, error)
 }
 
 type LoadString interface {
-	LoadString(types.Ctx) (types.Ctx, error)
+	LoadString(t.Ctx) (t.Ctx, error)
 }
 
 type LoadStringMap interface {
-	LoadStringMap(types.Ctx) (types.Ctx, error)
+	LoadStringMap(t.Ctx) (t.Ctx, error)
 }
 
 type StreamStringMap interface {
-	StreamStringMap(chan types.Ctx, e.HandleError) (chan types.Ctx)
+	StreamStringMap(chan t.Ctx, e.Handle) (chan t.Ctx)
 }
 
 type IsNewString interface {
-	IsNewString(types.Ctx, string) (types.Ctx, bool, error)
+	IsNewString(t.Ctx, string) (t.Ctx, bool, error)
 }
 
 type IsNewBytes interface {
-	IsNewBytes(types.Ctx, []byte) (types.Ctx, bool, error)
+	IsNewBytes(t.Ctx, []byte) (t.Ctx, bool, error)
 }
 
 

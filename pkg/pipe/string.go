@@ -57,7 +57,7 @@ func (p StringPipe) StartsWith(texts []string) (np StringPipe) {
 	return
 }
 
-func (p StringPipe) Load(store s.LoadString, errH e.HandleError) (np StringPipe) {
+func (p StringPipe) Load(store s.LoadString, errH e.Handle) (np StringPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 
@@ -76,7 +76,7 @@ func (p StringPipe) Load(store s.LoadString, errH e.HandleError) (np StringPipe)
 	return
 }
 
-func (p StringPipe) Store(store s.StoreString, errH e.HandleError) (np StringPipe) {
+func (p StringPipe) Store(store s.StoreString, errH e.Handle) (np StringPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 
@@ -147,7 +147,7 @@ func (p StringPipe) ToSlice(op ...interface{}) (np StringSlicePipe) {
 	case 2:
 		switch f := op[0].(type) {
 		case func(string) ([]string, error):
-			errH, ok := op[1].(e.HandleError)
+			errH, ok := op[1].(e.Handle)
 			if !ok {
 				log.Fatal()
 				return
@@ -210,7 +210,7 @@ func (p StringPipe) ToString(op ...interface{}) (np StringPipe) {
 	case 2:
 		switch f := op[0].(type) {
 		case func(string) (string, error):
-			errH, ok := op[1].(e.HandleError)
+			errH, ok := op[1].(e.Handle)
 			if !ok {
 				log.Fatal()
 				return
@@ -293,7 +293,7 @@ func (p StringPipe) Render(tmpl string) (np StringPipe) {
 	return
 }
 
-func (p StringPipe) IsNew(store s.IsNewString, errH e.HandleError) (np StringPipe) {
+func (p StringPipe) IsNew(store s.IsNewString, errH e.Handle) (np StringPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

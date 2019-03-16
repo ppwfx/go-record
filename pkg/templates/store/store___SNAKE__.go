@@ -20,5 +20,5 @@ type Load__CAMEL__ interface {
 }
 
 type Stream__CAMEL__ interface {
-	Stream__CAMEL__(chan types.Ctx, e.HandleError) (chan types.Ctx)
+	Stream__CAMEL__(chan types.Ctx, e.Handle) (chan types.Ctx)
 }

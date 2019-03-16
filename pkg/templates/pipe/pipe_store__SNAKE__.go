@@ -6,7 +6,7 @@ import (
 	"github.com/21stio/go-record/pkg/templates/store"
 )
 
-func (p __CAMEL__Pipe) Store(store store.Store__CAMEL__, errH e.HandleError) (np __CAMEL__Pipe) {
+func (p __CAMEL__Pipe) Store(store store.Store__CAMEL__, errH e.Handle) (np __CAMEL__Pipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

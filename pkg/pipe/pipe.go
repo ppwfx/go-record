@@ -251,7 +251,7 @@ func (p Pipe) Scoped(scope string, f func(Pipe) (Pipe)) (np Pipe) {
 	return
 }
 
-func (p Pipe) Do(f func(types.Ctx) (types.Ctx, error), errH e.HandleError) (np Pipe) {
+func (p Pipe) Do(f func(types.Ctx) (types.Ctx, error), errH e.Handle) (np Pipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

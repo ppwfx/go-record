@@ -44,7 +44,7 @@ func (p BytesPipe) ToString() (np StringPipe) {
 	return np
 }
 
-func (p BytesPipe) Load(store s.LoadBytes, errH e.HandleError) (np BytesPipe) {
+func (p BytesPipe) Load(store s.LoadBytes, errH e.Handle) (np BytesPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 
@@ -96,7 +96,7 @@ func (p BytesPipe) HexToString(func([]byte) string) (np StringPipe) {
 	return
 }
 
-func (p BytesPipe) Store(store s.StoreBytes, errH e.HandleError) (np BytesPipe) {
+func (p BytesPipe) Store(store s.StoreBytes, errH e.Handle) (np BytesPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 
@@ -115,7 +115,7 @@ func (p BytesPipe) Store(store s.StoreBytes, errH e.HandleError) (np BytesPipe) 
 	return
 }
 
-func (p BytesPipe) IsNew(store s.IsNewBytes, errH e.HandleError) (np BytesPipe) {
+func (p BytesPipe) IsNew(store s.IsNewBytes, errH e.Handle) (np BytesPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

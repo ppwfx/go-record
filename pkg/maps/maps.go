@@ -2,51 +2,50 @@ package maps
 
 import (
 	"sync"
-	"github.com/21stio/go-record/pkg/types"
 )
 
-type ConUrlMap struct {
-	sync.RWMutex
-	internal map[string]types.Url
-}
-
-func NewConUrlMap() *ConUrlMap {
-	return &ConUrlMap{
-		internal: make(map[string]types.Url),
-	}
-}
-
-func (rm *ConUrlMap) Load(key string) (value types.Url, ok bool) {
-	rm.RLock()
-	result, ok := rm.internal[key]
-	rm.RUnlock()
-	return result, ok
-}
-
-func (rm *ConUrlMap) Delete(key string) {
-	rm.Lock()
-	delete(rm.internal, key)
-	rm.Unlock()
-}
-
-func (rm *ConUrlMap) Store(key string, value types.Url) {
-	rm.Lock()
-	rm.internal[key] = value
-	rm.Unlock()
-}
-
-func (rm *ConUrlMap) GetMap() (m map[string]types.Url) {
-	rm.Lock()
-	defer rm.Unlock()
-
-	m = map[string]types.Url{}
-
-	for k, v := range rm.internal {
-		m[k] = v
-	}
-
-	return
-}
+//type ConUrlMap struct {
+//	sync.RWMutex
+//	internal map[string]t.Url
+//}
+//
+//func NewConUrlMap() *ConUrlMap {
+//	return &ConUrlMap{
+//		internal: make(map[string]t.Url),
+//	}
+//}
+//
+//func (rm *ConUrlMap) Load(key string) (value t.Url, ok bool) {
+//	rm.RLock()
+//	result, ok := rm.internal[key]
+//	rm.RUnlock()
+//	return result, ok
+//}
+//
+//func (rm *ConUrlMap) Delete(key string) {
+//	rm.Lock()
+//	delete(rm.internal, key)
+//	rm.Unlock()
+//}
+//
+//func (rm *ConUrlMap) Store(key string, value t.Url) {
+//	rm.Lock()
+//	rm.internal[key] = value
+//	rm.Unlock()
+//}
+//
+//func (rm *ConUrlMap) GetMap() (m map[string]t.Url) {
+//	rm.Lock()
+//	defer rm.Unlock()
+//
+//	m = map[string]t.Url{}
+//
+//	for k, v := range rm.internal {
+//		m[k] = v
+//	}
+//
+//	return
+//}
 
 func Bool() *BoolMap {
 	return &BoolMap{

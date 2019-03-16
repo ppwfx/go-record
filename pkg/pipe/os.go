@@ -13,7 +13,7 @@ type OsPipe struct {
 	Pipe
 }
 
-func (p OsPipe) Exec(dir s.GetString, command s.GetString, errH e.HandleError) (np StringPipe) {
+func (p OsPipe) Exec(dir s.GetString, command s.GetString, errH e.Handle) (np StringPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

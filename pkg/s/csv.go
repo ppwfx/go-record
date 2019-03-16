@@ -4,7 +4,7 @@ import (
 	"encoding/csv"
 	"os"
 	"log"
-	"github.com/21stio/go-record/pkg/types"
+	"github.com/21stio/go-record/pkg/t"
 	"sync"
 	"io"
 	"bufio"
@@ -49,7 +49,7 @@ func Csv(path string, columns []string) (s CsvStore) {
 	return
 }
 
-func (s CsvStore) StoreStringMap(ctx types.Ctx, m map[string]string) (c types.Ctx, err error) {
+func (s CsvStore) StoreStringMap(ctx t.Ctx, m map[string]string) (c t.Ctx, err error) {
 	c = ctx
 
 	s.lock.Lock()
@@ -67,8 +67,8 @@ func (s CsvStore) StoreStringMap(ctx types.Ctx, m map[string]string) (c types.Ct
 	return
 }
 
-func (s CsvStore) StreamStringMap(ctxCh chan types.Ctx, errH e.HandleError) (nCtxCh chan types.Ctx) {
-	nCtxCh = make(chan types.Ctx, 1000)
+func (s CsvStore) StreamStringMap(ctxCh chan t.Ctx, errH e.Handle) (nCtxCh chan t.Ctx) {
+	nCtxCh = make(chan t.Ctx, 1000)
 
 	nJobs := 10
 

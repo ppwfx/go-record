@@ -11,7 +11,7 @@ type ReadCloserPipe struct {
 	Pipe
 }
 
-func (p ReadCloserPipe) ToBytes(errH e.HandleError) (np BytesPipe) {
+func (p ReadCloserPipe) ToBytes(errH e.Handle) (np BytesPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

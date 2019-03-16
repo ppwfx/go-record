@@ -11,7 +11,7 @@ type StringMapPipe struct {
 	Pipe
 }
 
-func (p StringMapPipe) Store(store s.StoreStringMap, errH e.HandleError) (np StringMapPipe) {
+func (p StringMapPipe) Store(store s.StoreStringMap, errH e.Handle) (np StringMapPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 
@@ -30,7 +30,7 @@ func (p StringMapPipe) Store(store s.StoreStringMap, errH e.HandleError) (np Str
 	return np
 }
 
-func (p StringMapPipe) Stream(store s.StreamStringMap, errH e.HandleError) (np StringMapPipe) {
+func (p StringMapPipe) Stream(store s.StreamStringMap, errH e.Handle) (np StringMapPipe) {
 	np.Ch = store.StreamStringMap(p.Ch, errH)
 
 	return

@@ -3,7 +3,7 @@ package s
 import (
 	"os"
 	"io/ioutil"
-	"github.com/21stio/go-record/pkg/types"
+	"github.com/21stio/go-record/pkg/t"
 )
 
 type FileStore struct {

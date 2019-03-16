@@ -1,13 +1,24 @@
 package e
 
 import (
-	"github.com/21stio/go-record/pkg/types"
-	"log"
+	"github.com/21stio/go-record/pkg/t"
 	"time"
+	"log"
 )
 
-type HandleError interface {
-	HandleError(types.Ctx, chan types.Ctx, error)
+type Handle interface {
+	HandleError(t.Ctx, chan t.Ctx, error)
+}
+
+func Ok() OkError {
+	return OkError{}
+}
+
+type OkError struct {
+}
+
+func (e OkError) HandleError(ctx t.Ctx, ctxCh chan t.Ctx, err error) {
+	log.Fatal(err)
 }
 
 func Fatal() FatalError {
@@ -17,7 +28,7 @@ func Fatal() FatalError {
 type FatalError struct {
 }
 
-func (e FatalError) HandleError(ctx types.Ctx, ctxCh chan types.Ctx, err error) {
+func (e FatalError) HandleError(ctx t.Ctx, ctxCh chan t.Ctx, err error) {
 	log.Fatal(err)
 }
 
@@ -33,7 +44,7 @@ type RequeueError struct {
 	block bool
 }
 
-func (e RequeueError) HandleError(ctx types.Ctx, ctxCh chan types.Ctx, err error) {
+func (e RequeueError) HandleError(ctx t.Ctx, ctxCh chan t.Ctx, err error) {
 	log.Println(err)
 
 	f := func() {

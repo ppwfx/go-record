@@ -10,6 +10,7 @@ import (
 	"github.com/21stio/go-record/pkg/pipe"
 	"github.com/21stio/go-record/pkg/store"
 	"log"
+	"github.com/21stio/go-record/pkg/s"
 )
 
 var nJobs = 100
@@ -18,7 +19,7 @@ type DocumentPipe struct {
 	pipe.Pipe
 }
 
-func FromReadCloser(p pipe.Pipe, store s.GetReadCloser, errH e.HandleError) (np DocumentPipe) {
+func FromReadCloser(p pipe.Pipe, store s.GetReadCloser, errH e.Handle) (np DocumentPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 
@@ -40,7 +41,7 @@ func FromReadCloser(p pipe.Pipe, store s.GetReadCloser, errH e.HandleError) (np 
 	return np
 }
 
-func (p DocumentPipe) ParseHrefs(errH e.HandleError) (np pipe.StringPipe) {
+func (p DocumentPipe) ParseHrefs(errH e.Handle) (np pipe.StringPipe) {
 	np.Ch = make(chan types.Ctx, 1000)
 	np.Scope = p.Scope
 

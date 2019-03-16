@@ -20,5 +20,5 @@ type LoadByteSlice interface {
 }
 
 type StreamByteSlice interface {
-	StreamByteSlice(chan types.Ctx, e.HandleError) (chan types.Ctx)
+	StreamByteSlice(chan types.Ctx, e.Handle) (chan types.Ctx)
 }

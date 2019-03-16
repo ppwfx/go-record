@@ -5,6 +5,7 @@ import (
 	"log"
 	"github.com/21stio/go-record/pkg/t"
 	"github.com/davecgh/go-spew/spew"
+	"strings"
 )
 
 const (
@@ -241,23 +242,23 @@ func (p Pipe) Do(a ...interface{}) (np Pipe) {
 	return
 }
 
-func WrapFunc(key string, any []interface{}) (fType reflect.Type, doesErr bool, fWrapped interface{}) {
-	switch sth := any[0].(type) {
+func WrapFunc(key string, af []interface{}) (fType reflect.Type, doesErr bool, fWrapped interface{}) {
+	switch sf := af[0].(type) {
 	case func(string) (string):
-		fType = reflect.TypeOf(sth)
-		fWrapped = String_To_String(key, sth)
+		fType = reflect.TypeOf(sf)
+		fWrapped = String_To_String(key, sf)
 	case func(string) (string, error):
-		fType = reflect.TypeOf(sth)
+		fType = reflect.TypeOf(sf)
 		doesErr = true
-		fWrapped = String_To_String_Err(key, sth)
+		fWrapped = String_To_String_Err(key, sf)
 	case func(interface{}):
-		fType = reflect.TypeOf(sth)
+		fType = reflect.TypeOf(sf)
 		doesErr = false
-		fWrapped = Interface_To_Void(key, sth)
+		fWrapped = Interface_To_Void(key, sf)
 	case func(...interface{}):
-		fType = reflect.TypeOf(sth)
+		fType = reflect.TypeOf(sf)
 		doesErr = false
-		fWrapped = VariadicInterface_To_Void(key, sth)
+		fWrapped = VariadicInterface_To_Void(key, sf)
 	default:
 		log.Panic("WrapFunc did not match")
 	}
@@ -272,7 +273,7 @@ func abc(a ...interface{}) {
 
 func main() {
 	Inject("url", "21st.io").
-	Do(spew.Dump)
+	Do(strings.Split)
 
 	//injectMeta := p.Meta
 	//spew.Dump(injectMeta)

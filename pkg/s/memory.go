@@ -3,7 +3,7 @@ package s
 import (
 
 	"github.com/21stio/go-record/pkg/maps"
-	"github.com/21stio/go-record/pkg/types"
+	"github.com/21stio/go-record/pkg/t"
 )
 
 type MemoryStore struct {
@@ -16,7 +16,7 @@ func Memory() (s MemoryStore) {
 	return
 }
 
-func (s MemoryStore) IsNewString(ctx types.Ctx, str string) (c types.Ctx, isNew bool, err error) {
+func (s MemoryStore) IsNewString(ctx t.Ctx, str string) (c t.Ctx, isNew bool, err error) {
 	c = ctx
 
 	_, ok := s.IsNew.Load(str)
@@ -28,7 +28,7 @@ func (s MemoryStore) IsNewString(ctx types.Ctx, str string) (c types.Ctx, isNew 
 	return
 }
 
-func (s MemoryStore) IsNewBytes(ctx types.Ctx, b []byte) (c types.Ctx, isNew bool, err error) {
+func (s MemoryStore) IsNewBytes(ctx t.Ctx, b []byte) (c t.Ctx, isNew bool, err error) {
 	c = ctx
 
 	key := string(b)

@@ -20,5 +20,5 @@ type LoadString interface {
 }
 
 type StreamString interface {
-	StreamString(chan types.Ctx, e.HandleError) (chan types.Ctx)
+	StreamString(chan types.Ctx, e.Handle) (chan types.Ctx)
 }

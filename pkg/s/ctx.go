@@ -1,7 +1,7 @@
 package s
 
 import (
-	"github.com/21stio/go-record/pkg/types"
+	"github.com/21stio/go-record/pkg/t"
 	"io"
 )
 
@@ -15,50 +15,50 @@ func Ctx(key string) (s CtxStore) {
 	return
 }
 
-func (s CtxStore) StoreBytes(ctx types.Ctx, b []byte) (c types.Ctx, err error) {
+func (s CtxStore) StoreBytes(ctx t.Ctx, b []byte) (c t.Ctx, err error) {
 	c = ctx
 
-	c.Map.Bytes[s.key] = b
+	c.Bytes[s.key] = b
 
 	return
 }
 
-func (s CtxStore) LoadBytes(ctx types.Ctx) (c types.Ctx, err error) {
+func (s CtxStore) LoadBytes(ctx t.Ctx) (c t.Ctx, err error) {
 	c = ctx
 
-	c.Val.Bytes = c.Map.Bytes[s.key]
+	//c.Val.Bytes = c.Bytes[s.key]
 
 	return
 }
 
-func (s CtxStore) StoreString(ctx types.Ctx, str string) (c types.Ctx, err error) {
+func (s CtxStore) StoreString(ctx t.Ctx, str string) (c t.Ctx, err error) {
 	c = ctx
 
-	c.Map.String[s.key] = str
+	c.String[s.key] = str
 
 	return
 }
 
-func (s CtxStore) LoadString(ctx types.Ctx) (c types.Ctx, err error) {
+func (s CtxStore) LoadString(ctx t.Ctx) (c t.Ctx, err error) {
 	c = ctx
 
-	c.Val.String = c.Map.String[s.key]
+	//c.Val.String = c.String[s.key]
 
 	return
 }
 
-func (s CtxStore) GetString(ctx types.Ctx) (string) {
-	return ctx.Map.String[s.key]
+func (s CtxStore) GetString(ctx t.Ctx) (string) {
+	return ctx.String[s.key]
 }
 
-func (s CtxStore) StoreReadCloser(ctx types.Ctx, rc io.ReadCloser) (c types.Ctx, err error) {
+func (s CtxStore) StoreReadCloser(ctx t.Ctx, rc io.ReadCloser) (c t.Ctx, err error) {
 	c = ctx
 
-	c.Map.ReadCloser[s.key] = rc
+	c.ReadCloser[s.key] = rc
 
 	return
 }
 
-func (s CtxStore) GetReadCloser (ctx types.Ctx) (rc io.ReadCloser) {
-	return ctx.Map.ReadCloser[s.key]
+func (s CtxStore) GetReadCloser (ctx t.Ctx) (rc io.ReadCloser) {
+	return ctx.ReadCloser[s.key]
 }

@@ -19,7 +19,7 @@ func New(p pipe.Pipe) (np HttpPipe) {
 	return
 }
 
-func (p HttpPipe) Get(errH e.HandleError) (nP pipe.ResponsePipe) {
+func (p HttpPipe) Get(errH e.Handle) (nP pipe.ResponsePipe) {
 	nP.Ch = make(chan types.Ctx, 1000)
 	nP.Scope = p.Scope
 
